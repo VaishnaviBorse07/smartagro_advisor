@@ -431,13 +431,13 @@ def show_login():
                 st.session_state.user = users[username]
                 st.success(t("welcome"))
                 time.sleep(1)
-                st.rerun()
+                st.experimental_rerun()
             else:
                 st.error(t("invalid"))
     with col2:
         if st.button(t("need_account")):
             st.session_state.show_register = True
-            st.rerun()
+            st.experimental_rerun()
     
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -471,13 +471,13 @@ def show_register():
                     st.success(t("reg_success"))
                     time.sleep(1)
                     st.session_state.show_register = False
-                    st.rerun()
+                    st.experimental_rerun()
                 else:
                     st.error(message)
     with col2:
         if st.button(t("have_account")):
             st.session_state.show_register = False
-            st.rerun()
+            st.experimental_rerun()
     
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -835,7 +835,7 @@ elif st.session_state.page == "Dashboard":
                     }
                     st.session_state.crop_data.append(new_record)
                     st.success("Record added successfully!")
-                    st.rerun()
+                    st.experimental_rerun()
 
 elif st.session_state.page == "Weather":
     st.header(t("weather_title"))
