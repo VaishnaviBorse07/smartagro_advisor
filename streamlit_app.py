@@ -790,11 +790,12 @@ elif st.session_state.page == "Dashboard":
         # Crop History Table
         st.subheader(t("crop_history"))
         if len(st.session_state.crop_data) > 0:
-            st.dataframe(
-                pd.DataFrame(st.session_state.crop_data),
-                use_container_width=True,
-                hide_index=True
-            )
+           df = pd.DataFrame(st.session_state.crop_data)
+           df.index = [''] * len(df)  # Hide index by making it empty
+           st.dataframe(
+                df,
+                use_container_width=True
+           )
         else:
             st.info(t("no_records"))
     
