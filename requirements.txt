@@ -2,8 +2,8 @@ streamlit
 pandas
 numpy
 scikit-learn
-tensorflow==2.9.3
-keras==2.9.0
+tensorflow==2.15.0
+scikit-learn==1.4.1
 matplotlib
 seaborn
 opencv-python
