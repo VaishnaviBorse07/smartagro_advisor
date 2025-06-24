@@ -622,7 +622,7 @@ with st.sidebar:
     
     if st.button(t("logout")):
         st.session_state.clear()
-        st.rerun()
+        st.experimental_rerun()
     
     selected_lang = st.selectbox(
         "🌐 Language",
