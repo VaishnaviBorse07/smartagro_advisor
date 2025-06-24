@@ -1,0 +1,14 @@
+streamlit
+pandas
+numpy
+scikit-learn
+tensorflow==2.9.3
+keras==2.9.0
+matplotlib
+seaborn
+opencv-python
+pillow
+gdown
+joblib
+plotly
+streamlit-lottie
