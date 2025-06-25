@@ -30,7 +30,6 @@ def download_and_extract_train_images():
             zip_ref.extractall("data/")
         print("Extraction complete.")
 
-
 # =============================================
 # Utility Functions 
 # =============================================
@@ -293,7 +292,7 @@ text = {
         "mission": "हमारा मिशन",
         "vision": "हमारी दृष्टि",
         "mission_text": "टिकाऊ कृषि के लिए एआई-संचालित अंतर्दृष्टि के साथ किसानों को सशक्त बनाना",
-        "vision_text": "अत्याधुनिक तकनीक के माध्यम से पारंपरिक खेती को बदलना",
+        "vision_text": "अत्याधुनिक तकनीक के माध्यम से पारंपारिक खेती को बदलना",
         "contact_info": [
             "📧 ईमेल: smartagro@gmail.com", 
             "📞 फ़ोन: +91-xxxxxxxxx",
@@ -733,7 +732,7 @@ elif st.session_state.page == "Disease Detection":
         uploaded_file = st.file_uploader(t("upload_leaf"), type=["jpg", "jpeg", "png"])
         if uploaded_file:
             image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Image", use_container_width=True)
+            st.image(image, caption="Uploaded Image")  # Fixed: removed use_container_width
             
             if st.button(t("analyze")):
                 with st.spinner("Analyzing..."):
@@ -749,7 +748,7 @@ elif st.session_state.page == "Disease Detection":
         img_file_buffer = st.camera_input(t("camera_instructions"))
         if img_file_buffer:
             image = Image.open(img_file_buffer)
-            st.image(image, caption="Captured Image", use_container_width=True)
+            st.image(image, caption="Captured Image")  # Fixed: removed use_container_width
             
             if st.button(t("analyze_button")):
                 with st.spinner("Analyzing..."):
@@ -988,6 +987,6 @@ elif st.session_state.page == "Contact":
 # Footer
 st.markdown("""
 <footer style="margin-top: 4rem; padding: 2rem 0; text-align: center;">
-    <p>AgroAI Advisor © 2023 | All Rights Reserved</p>
+    <p>AgroAI Advisor © 2025 | All Rights Reserved</p>
 </footer>
 """, unsafe_allow_html=True)
