@@ -1,4 +1,3 @@
-# Complete AgroAI Advisor App with Admin Panel
 import streamlit as st
 from PIL import Image
 import os
@@ -16,19 +15,7 @@ from streamlit_lottie import st_lottie
 import random
 import gdown
 import zipfile
-
-def download_and_extract_train_images():
-    zip_path = "data/train.zip"
-    extract_path = "data/train"
-    
-    if not os.path.exists(extract_path):
-        print("Downloading training images...")
-        gdown.download("https://drive.google.com/uc?id=1SlFCW7RKvhlmrLtJypKZBZlkFZk8ycp4", zip_path, quiet=False)
-        
-        print("Extracting...")
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall("data/")
-        print("Extraction complete.")
+from disease_detector import predict_disease as real_predict_disease
 
 # =============================================
 # Utility Functions 
@@ -53,21 +40,6 @@ def predict_yield(crop, season, state, area, rainfall, fertilizer, pesticide):
     
     return max(1.0, yield_estimate)  # Ensure minimum yield
 
-def predict_disease(image):
-    """Mock disease detection function"""
-    diseases = [
-        ("Healthy", 0.95),
-        ("Powdery Mildew", 0.85),
-        ("Leaf Rust", 0.78),
-        ("Bacterial Blight", 0.72),
-        ("Early Blight", 0.68)
-    ]
-    # Select random disease (weighted toward healthy)
-    return random.choices(
-        diseases,
-        weights=[50, 15, 15, 10, 10]
-    )[0]
-
 def get_weather_forecast(location):
     """Mock weather forecast function"""
     days = 7
@@ -84,62 +56,30 @@ def get_weather_forecast(location):
     }
 
 # =============================================
-# User Management Functions
-# =============================================
-
-def is_admin():
-    """Check if current user is admin"""
-    return st.session_state.get('user', {}).get('role') == 'admin'
-
-def get_all_users():
-    """Get all registered users (admin only)"""
-    if not is_admin():
-        return {}
-    return load_users()
-
-def delete_user(username):
-    """Delete a user (admin only)"""
-    if not is_admin():
-        return False
-        
-    users = load_users()
-    if username in users:
-        del users[username]
-        with open("user_database.json", "w") as f:
-            json.dump(users, f)
-        return True
-    return False
-
-# =============================================
 # App Configuration
 # =============================================
 
 # Initialize session state
-def init_session_state():
-    """Initialize all session state variables"""
-    if 'page' not in st.session_state:
-        st.session_state.page = "Home"
-    if 'language' not in st.session_state:
-        st.session_state.language = "en"
-    if 'crop_data' not in st.session_state:
-        st.session_state.crop_data = []
-    if 'logged_in' not in st.session_state:
-        st.session_state.logged_in = False
-    if 'user' not in st.session_state:
-        st.session_state.user = None
-    if 'show_register' not in st.session_state:
-        st.session_state.show_register = False
+if 'page' not in st.session_state:
+    st.session_state.page = "Home"
+if 'language' not in st.session_state:
+    st.session_state.language = "en"
+if 'crop_data' not in st.session_state:
+    st.session_state.crop_data = []
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+if 'user' not in st.session_state:
+    st.session_state.user = None
+if 'show_register' not in st.session_state:
+    st.session_state.show_register = False
 
-    # Initialize with sample crop data if empty
-    if len(st.session_state.crop_data) == 0:
-        st.session_state.crop_data = [
-            {"Crop": "Wheat", "Planted": "2023-10-01", "Harvested": "2024-03-15", "Yield": 4.2, "Notes": "Good harvest"},
-            {"Crop": "Corn", "Planted": "2023-06-15", "Harvested": "2023-09-30", "Yield": 5.8, "Notes": "Affected by drought"},
-            {"Crop": "Soybean", "Planted": "2023-05-01", "Harvested": "2023-08-20", "Yield": 3.5, "Notes": "Standard yield"}
-        ]
-
-# Call initialization function
-init_session_state()
+# Sample crop data if empty
+if len(st.session_state.crop_data) == 0:
+    st.session_state.crop_data = [
+        {"Crop": "Wheat", "Planted": "2023-10-01", "Harvested": "2024-03-15", "Yield": 4.2, "Notes": "Good harvest"},
+        {"Crop": "Corn", "Planted": "2023-06-15", "Harvested": "2023-09-30", "Yield": 5.8, "Notes": "Affected by drought"},
+        {"Crop": "Soybean", "Planted": "2023-05-01", "Harvested": "2023-08-20", "Yield": 3.5, "Notes": "Standard yield"}
+    ]
 
 # Lottie animations
 def load_lottieurl(url):
@@ -183,10 +123,6 @@ def register_user(username, password, name, email, farm_size="5", location="Unkn
     users = load_users()
     if username in users:
         return False, "Username already exists"
-    
-    if role == "admin" and not is_admin():
-        return False, "Only admins can create admin accounts"
-    
     users[username] = {
         "password": hash_password(password),
         "name": name,
@@ -195,10 +131,9 @@ def register_user(username, password, name, email, farm_size="5", location="Unkn
         "farm_size": farm_size,
         "location": location
     }
-    
     with open("user_database.json", "w") as f:
         json.dump(users, f)
-    return True, f"User {username} registered as {role}"
+    return True, "Registration successful"
 
 # Translation system
 languages = {
@@ -209,43 +144,23 @@ languages = {
 
 text = {
     "en": {
-        "login": "🔐 Login", 
-        "logout": "🚪 Logout", 
-        "welcome": "✅ Welcome",
-        "invalid": "❌ Invalid credentials", 
-        "username": "Username",
-        "password": "Password", 
-        "login_button": "Login",
-        "logged_as": "Logged in as", 
-        "crop_yield": "🌿 Crop Yield",
-        "disease_detect": "🦠 Disease Detection", 
-        "home": "🌾 Home",
-        "features": "📌 Features", 
-        "about": "📖 About", 
-        "contact": "📬 Contact",
-        "team": "Our Team", 
-        "upload_leaf": "Upload Leaf Image",
-        "analyze": "Analyze", 
-        "crop": "Crop", 
-        "season": "Season",
-        "state": "State", 
-        "area": "Area (hectares)", 
-        "rainfall": "Rainfall (mm)",
-        "fertilizer": "Fertilizer (kg)", 
-        "pesticide": "Pesticide (kg)",
-        "predict": "Predict Yield", 
-        "hero_title": "AgroAI Advisor",
+        "login": "🔐 Login", "logout": "🚪 Logout", "welcome": "✅ Welcome",
+        "invalid": "❌ Invalid credentials", "username": "Username",
+        "password": "Password", "login_button": "Login",
+        "logged_as": "Logged in as", "crop_yield": "🌿 Crop Yield",
+        "disease_detect": "🦠 Disease Detection", "home": "🌾 Home",
+        "features": "📌 Features", "about": "📖 About", "contact": "📬 Contact",
+        "team": "Our Team", "upload_leaf": "Upload Leaf Image",
+        "analyze": "Analyze", "crop": "Crop", "season": "Season",
+        "state": "State", "area": "Area (hectares)", "rainfall": "Rainfall (mm)",
+        "fertilizer": "Fertilizer (kg)", "pesticide": "Pesticide (kg)",
+        "predict": "Predict Yield", "hero_title": "AgroAI Advisor",
         "hero_subtitle": "Smart Agriculture Assistant",
-        "register": "📝 Register", 
-        "name": "Full Name",
-        "email": "Email", 
-        "confirm_password": "Confirm Password",
-        "register_button": "Create Account", 
-        "have_account": "Already have an account? Login",
-        "need_account": "Need an account? Register", 
-        "reg_success": "Registration successful! Please login",
-        "password_mismatch": "Passwords do not match", 
-        "invalid_email": "Please enter a valid email",
+        "register": "📝 Register", "name": "Full Name",
+        "email": "Email", "confirm_password": "Confirm Password",
+        "register_button": "Create Account", "have_account": "Already have an account? Login",
+        "need_account": "Need an account? Register", "reg_success": "Registration successful! Please login",
+        "password_mismatch": "Passwords do not match", "invalid_email": "Please enter a valid email",
         "yield_form_title": "Crop Yield Calculator",
         "disease_form_title": "Plant Disease Scanner",
         "camera_instructions": "Point your camera at a plant leaf and capture an image",
@@ -302,15 +217,7 @@ text = {
             {"name": "Maithili Pawar", "role": "Frontend Developer", "bio": "B.Tech in Computer Science"},
             {"name": "Yuvraj Rajure", "role": "ML Developer", "bio": "B.Tech in Computer Science"},
             {"name": "Hardik Sonawane", "role": "ML Developer", "bio": "B.Tech in Computer Science"}
-        ],
-        "admin_panel": "🔐 Admin Panel",
-        "admin_access_required": "⛔ Admin access required",
-        "registered_users": "Registered Users",
-        "user_actions": "User Actions",
-        "view_details": "View Details",
-        "delete_user": "Delete User",
-        "add_new_admin": "Add New Admin",
-        "create_admin": "Create Admin"
+        ]
     },
     "hi": {
         "login": "🔐 लॉगिन", 
@@ -550,13 +457,13 @@ def show_login():
                 st.session_state.user = users[username]
                 st.success(t("welcome"))
                 time.sleep(1)
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error(t("invalid"))
     with col2:
         if st.button(t("need_account")):
             st.session_state.show_register = True
-            st.experimental_rerun()
+            st.rerun()
     
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -590,81 +497,15 @@ def show_register():
                     st.success(t("reg_success"))
                     time.sleep(1)
                     st.session_state.show_register = False
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.error(message)
     with col2:
         if st.button(t("have_account")):
             st.session_state.show_register = False
-            st.experimental_rerun()
+            st.rerun()
     
     st.markdown("</div>", unsafe_allow_html=True)
-
-def show_admin_panel():
-    st.header(t("admin_panel"))
-    
-    if not is_admin():
-        st.warning(t("admin_access_required"))
-        st.stop()
-    
-    st.subheader(t("registered_users"))
-    users = get_all_users()
-    
-    if not users:
-        st.info("No users registered yet")
-    else:
-        # Display users in a nice table
-        user_data = []
-        for username, details in users.items():
-            user_data.append({
-                "Username": username,
-                "Name": details['name'],
-                "Email": details['email'],
-                "Role": details.get('role', 'user'),
-                "Farm Size": details.get('farm_size', 'N/A'),
-                "Location": details.get('location', 'N/A')
-            })
-        
-        df = pd.DataFrame(user_data)
-        st.dataframe(df, use_container_width=True)
-        
-        # User management actions
-        st.subheader(t("user_actions"))
-        selected_user = st.selectbox("Select user", list(users.keys()))
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button(t("view_details")):
-                st.json(users[selected_user])
-        
-        with col2:
-            if st.button(t("delete_user")):
-                if delete_user(selected_user):
-                    st.success(f"User {selected_user} deleted")
-                    st.experimental_rerun()
-                else:
-                    st.error("Deletion failed")
-        
-        # Create new admin
-        st.subheader(t("add_new_admin"))
-        with st.form("new_admin_form"):
-            new_username = st.text_input(t("username"))
-            new_password = st.text_input("Password", type="password")
-            new_name = st.text_input(t("name"))
-            new_email = st.text_input(t("email"))
-            
-            if st.form_submit_button(t("create_admin")):
-                success, message = register_user(
-                    new_username,
-                    new_password,
-                    new_name,
-                    new_email,
-                    role="admin"
-                )
-                if success:
-                    st.success(message)
-                else:
-                    st.error(message)
 
 # Initialize user database
 init_user_db()
@@ -779,22 +620,6 @@ body {
 .team-card p {
     margin: 0.2rem 0;
 }
-
-/* Admin panel specific */
-.admin-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.admin-table th, .admin-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #444;
-}
-
-.admin-table tr:hover {
-    background-color: rgba(255,255,255,0.05);
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -823,7 +648,7 @@ with st.sidebar:
     
     if st.button(t("logout")):
         st.session_state.clear()
-        st.experimental_rerun()
+        st.rerun()
     
     selected_lang = st.selectbox(
         "🌐 Language",
@@ -838,17 +663,10 @@ nav_items = [
     ("🌿 Crop Yield", "Crop Yield"),
     ("🦠 Disease Detection", "Disease Detection"),
     ("📊 Dashboard", "Dashboard"),
-    ("🌦️ Weather", "Weather")
-]
-
-# Only show admin panel to admins
-if is_admin():
-    nav_items.append((t("admin_panel"), "Admin"))
-
-nav_items.extend([
+    ("🌦️ Weather", "Weather"),
     ("📖 About", "About"),
     ("📬 Contact", "Contact")
-])
+]
 
 st.markdown("<div class='navbar'>", unsafe_allow_html=True)
 cols = st.columns(len(nav_items))
@@ -935,39 +753,61 @@ elif st.session_state.page == "Disease Detection":
     if lottie_disease:
         st_lottie(lottie_disease, height=200, key="disease-anim")
     
+    st.markdown("""
+    <div class="card">
+        <h4>📌 Instructions</h4>
+        <p>For best results:</p>
+        <ul>
+            <li>Upload a clear image of a plant leaf</li>
+            <li>Ensure the leaf covers most of the image</li>
+            <li>Use natural lighting if possible</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+    
     tab1, tab2 = st.tabs([t("upload_leaf"), t("capture_button")])
     
     with tab1:
         uploaded_file = st.file_uploader(t("upload_leaf"), type=["jpg", "jpeg", "png"])
         if uploaded_file:
-            image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Image")
-            
-            if st.button(t("analyze")):
-                with st.spinner("Analyzing..."):
-                    time.sleep(2)  # Simulate processing
-                    disease, confidence = predict_disease(image)
-                    st.success(f"Detected: {disease} ({(confidence*100):.1f}% confidence)")
-                    
-                    with st.expander(t("treatment_title")):
-                        for advice in t("treatment_advice"):
-                            st.markdown(f"🔹 {advice}")
+            try:
+                image = Image.open(uploaded_file)
+                st.image(image, caption="Uploaded Image", use_container_width=True)
+                
+                if st.button(t("analyze")):
+                    with st.spinner("Analyzing..."):
+                        disease, confidence = real_predict_disease(image)
+                        if confidence > 0:
+                            st.success(f"Detected: {disease} ({confidence:.1f}% confidence)")
+                            
+                            with st.expander(t("treatment_title")):
+                                for advice in t("treatment_advice"):
+                                    st.markdown(f"🔹 {advice}")
+                        else:
+                            st.warning(disease)  # Shows error message
+            except Exception as e:
+                st.error(f"Error processing image: {str(e)}")
     
     with tab2:
         img_file_buffer = st.camera_input(t("camera_instructions"))
         if img_file_buffer:
-            image = Image.open(img_file_buffer)
-            st.image(image, caption="Captured Image")
-            
-            if st.button(t("analyze_button")):
-                with st.spinner("Analyzing..."):
-                    time.sleep(2)  # Simulate processing
-                    disease, confidence = predict_disease(image)
-                    st.success(f"Detected: {disease} ({(confidence*100):.1f}% confidence)")
-                    
-                    with st.expander(t("treatment_title")):
-                        for advice in t("treatment_advice"):
-                            st.markdown(f"🔹 {advice}")
+            try:
+                image = Image.open(img_file_buffer)
+                st.image(image, caption="Captured Image", use_container_width=True)
+                
+                if st.button(t("analyze_button")):
+                    with st.spinner("Analyzing..."):
+                        disease, confidence = real_predict_disease(image)
+                        if confidence > 0:
+                            st.success(f"Detected: {disease} ({confidence:.1f}% confidence)")
+                            
+                            with st.expander(t("treatment_title")):
+                                for advice in t("treatment_advice"):
+                                    st.markdown(f"🔹 {advice}")
+                        else:
+                            st.warning(disease)  # Shows error message
+            except Exception as e:
+                st.error(f"Error processing image: {str(e)}")
 
 elif st.session_state.page == "Dashboard":
     st.header(t("dashboard_title"))
