@@ -15,7 +15,7 @@ from streamlit_lottie import st_lottie
 import random
 import gdown
 import zipfile
-from disease_detector import predict_disease as real_predict_disease
+from utils.disease_detector import predict_disease as real_predict_disease
 
 # =============================================
 # Utility Functions 
