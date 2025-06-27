@@ -1,23 +1,12 @@
-# Core Web App
 streamlit
 streamlit-lottie
-
-# Data Processing
 pandas
 numpy==1.26.4
 scikit-learn==1.4.2
 joblib
 gdown
-
-# Machine Learning / Deep Learning
-tensorflow==2.13.0  # Works with Python 3.11+
-# keras is included in tensorflow >=2.6
-
-# Visualization
 matplotlib
 seaborn
 plotly
-
-# Image Processing
-opencv-python-headless
 pillow
+opencv-python-headless
