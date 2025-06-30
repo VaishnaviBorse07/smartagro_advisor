@@ -1,4 +1,5 @@
 streamlit
+streamlit-lottie
 Pillow
 numpy
 pandas
