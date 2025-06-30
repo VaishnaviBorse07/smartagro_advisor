@@ -914,13 +914,13 @@ def show_login_form():
                     st.session_state.user = result
                     st.success(t('welcome'))
                     time.sleep(1)
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.error(result)
             
             if register_btn:
                 st.session_state.show_register = True
-                st.experimental_rerun()
+                st.rerun()
 
 def show_register_form():
     """Render registration form UI"""
@@ -964,13 +964,13 @@ def show_register_form():
                         st.success(message)
                         time.sleep(1)
                         st.session_state.show_register = False
-                        st.experimental_rerun()
+                        st.rerun()
                     else:
                         st.error(message)
             
             if login_btn:
                 st.session_state.show_register = False
-                st.experimental_rerun()
+                st.rerun()
 
 def show_sidebar():
     """Render application sidebar"""
@@ -986,7 +986,7 @@ def show_sidebar():
         
         if st.button(t('logout')):
             st.session_state.clear()
-            st.experimental_rerun()
+            st.rerun()
         
         # Language selector
         selected_lang = st.selectbox(
@@ -1072,7 +1072,7 @@ def show_yield_page():
                         st.markdown(f"✅ {tip}")
 
 def show_disease_page():
-    """disease detection page"""
+    """Render disease detection page"""
     st.header(t('disease_form_title'))
     
     lottie_disease = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_ygiuluqn.json")
@@ -1162,7 +1162,7 @@ def show_disease_page():
                 st.error(f"{t('error_processing')}: {str(e)}")
 
 def show_dashboard_page():
-    """analytics dashboard page"""
+    """Render analytics dashboard page"""
     st.header(t('dashboard_title'))
     
     # Main layout
@@ -1243,12 +1243,12 @@ def show_dashboard_page():
                     success, message = add_crop_record(st.session_state.user['username'], crop_data)
                     if success:
                         st.success(message)
-                        st.experimental_rerun()
+                        st.rerun()
                     else:
                         st.error(message)
 
 def show_weather_page():
-    """weather forecast page"""
+    """Render weather forecast page"""
     st.header(t('weather_title'))
     
     lottie_weather = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_nKwET0.json")
@@ -1329,7 +1329,7 @@ def show_weather_page():
                 st.error(t('weather_fetch_failed'))
 
 def show_about_page():
-    """about page"""
+    """Render about page"""
     st.header(t('about_title'))
     
     col1, col2 = st.columns(2)
@@ -1382,7 +1382,7 @@ def show_about_page():
         """, unsafe_allow_html=True)
 
 def show_contact_page():
-    """contact page"""
+    """Render contact page"""
     st.header(t('contact_title'))
     
     cols = st.columns(2)
